@@ -1,49 +1,58 @@
 CREATE SCHEMA universidade;
 USE universidade;
-CREATE TABLE CURSO(
+
+CREATE TABLE curso(
 codigo INT PRIMARY KEY,
 nome VARCHAR(100) NOT NULL,
 cargaHoraria INT DEFAULT 3600);
-CREATE TABLE PROFESSOR(
+
+CREATE TABLE professor(
 matricula INT(4) ZEROFILL PRIMARY KEY,
 email VARCHAR(150) NOT NULL UNIQUE,
 cursoCoordenado INT,
-CONSTRAINT PROF_CUR FOREIGN KEY (cursoCoordenado) REFERENCES CURSO(codigo));
-CREATE TABLE MATERIA(
+FOREIGN KEY (cursoCoordenado) REFERENCES curso(codigo));
+
+CREATE TABLE materia(
 codMateria INT PRIMARY KEY,
 nome VARCHAR(100) NOT NULL,
-preRequisitos INT NOT NULL,
-cargaHoraria INT NOT NULL CHECK(cargaHoraria > 40),
-CONSTRAINT MAT_MAT FOREIGN KEY (preRequisitos) REFERENCES MATERIA(codMateria));
-CREATE TABLE CURSO_HAS_MATERIAS(
+cargaHoraria INT NOT NULL CHECK(cargaHoraria >= 40));
+
+CREATE TABLE curso_has_materias(
 idCurso INT NOT NULL,
 idMateria INT NOT NULL,
 PRIMARY KEY(idCurso, idMateria),
-CONSTRAINT CUR_MAT FOREIGN KEY (idMateria) REFERENCES MATERIA(codMateria),
-CONSTRAINT CUR_CUR FOREIGN KEY (idCurso) REFERENCES CURSO(codigo));
-CREATE TABLE DISCIPLINA(
+FOREIGN KEY (idMateria) REFERENCES materia(codMateria),
+FOREIGN KEY (idCurso) REFERENCES curso(codigo));
+
+CREATE TABLE disciplina(
 idDisciplina INT PRIMARY KEY,
 vagas INT NOT NULL CHECK(vagas BETWEEN 0 AND 60),
 semestre ENUM("1", "2") NOT NULL,
 codMateria INT NOT NULL,
 professor INT(4) ZEROFILL NOT NULL,
-CONSTRAINT DISC_PROF FOREIGN KEY (professor) REFERENCES PROFESSOR(matricula),
-CONSTRAINT DIS_MAT FOREIGN KEY (codMateria) REFERENCES MATERIA(codMateria));
-CREATE TABLE PRE_REQUISITOS(
-idMateria INT PRIMARY KEY,
-nome VARCHAR(150) NOT NULL,
-CONSTRAINT PRE_MAT FOREIGN KEY (idMateria) REFERENCES MATERIA(codMateria));
-CREATE TABLE ALUNOS(
+FOREIGN KEY (professor) REFERENCES professor(matricula),
+FOREIGN KEY (codMateria) REFERENCES materia(codMateria));
+
+CREATE TABLE pre_requisitos(
+idMateria INT,
+idRequisito INT,
+PRIMARY KEY(idMateria, idRequisito),
+FOREIGN KEY (idMateria) REFERENCES materia(codMateria),
+FOREIGN KEY (idRequisito) REFERENCES materia(codMateria));
+
+CREATE TABLE alunos(
 matricula INT PRIMARY KEY,
 curso INT,
-CONSTRAINT AL_CUR FOREIGN KEY (curso) REFERENCES CURSO(codigo));
-CREATE TABLE EMAILS_ALUNOS(
+FOREIGN KEY (curso) REFERENCES curso(codigo));
+
+CREATE TABLE emails_alunos(
 email VARCHAR(150) PRIMARY KEY,
 aluno INT NOT NULL,
-CONSTRAINT EMAIL_AL FOREIGN KEY (aluno) REFERENCES ALUNOS(matricula));
-CREATE TABLE ALUNOS_HAS_DISCIPLINAS(
+FOREIGN KEY (aluno) REFERENCES alunos(matricula));
+
+CREATE TABLE alunos_has_disciplinas(
 matriculaAluno INT NOT NULL,
 idDisciplina INT NOT NULL,
 PRIMARY KEY(matriculaAluno, idDisciplina),
-CONSTRAINT ALUN_ALUN FOREIGN KEY (matriculaAluno) REFERENCES ALUNOS(matricula),
-CONSTRAINT ALUN_DISC FOREIGN KEY (idDisciplina) REFERENCES DISCIPLINA(idDisciplina));
+FOREIGN KEY (matriculaAluno) REFERENCES alunos(matricula),
+FOREIGN KEY (idDisciplina) REFERENCES disciplina(idDisciplina));
